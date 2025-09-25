@@ -1,6 +1,6 @@
 SIZE_MB ?= 16
 PASS    ?= pass1234                   # gmssl key password
-ID      ?= 1234567812345678           # SM2 ID (must match on sign/verify)
+ID      ?= 1234567812345678
 
 BIN_FILE := msg.bin
 SIG_FILE := msg.sig
@@ -41,9 +41,9 @@ sign: $(SIG_FILE)
 # 4) Verify the signature with the public key
 verify: $(SIG_FILE) $(PUB_KEY) $(BIN_FILE)
 	@echo ">>> Verifying signature with gmssl library"
-	@cat $(BIN_FILE) | gmssl sm2verify -pubkey $(PUB_KEY) -id '$(ID)' -sig $(SIG_FILE)
+	gmssl sm2verify -pubkey $(PUB_KEY) -id '$(ID)' -in '$(BIN_FILE)' -sig $(SIG_FILE)
 	@echo ">>> Verifying signature with sm2verify binary"
-	@cat $(BIN_FILE) | $(SM2VERIFY) -pubkey $(PUB_KEY) -id '$(ID)' -sig $(SIG_FILE)
+	$(SM2VERIFY) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(BIN_FILE)' -sig $(SIG_FILE)
 
 build:
 	cmake -S . -B build
