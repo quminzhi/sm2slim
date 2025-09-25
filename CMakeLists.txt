@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(sm2verify C)
+set(APP sm2verify)
+project(${APP} C)
 
 # Generate compile_commands.json in the build directory
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -14,22 +15,18 @@ set(CMAKE_C_EXTENSIONS OFF)
 file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
 
 # Build the executable
-add_executable(sm2verify
+add_executable(${APP}
     main.c
     ${SRC_FILES}
 )
 
+include(cmake/coverage.cmake)
+cover_target(${APP})
+
 # Include path for headers: include/gmssl/...
-target_include_directories(sm2verify PRIVATE
+target_include_directories(${APP} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
-
-# Helpful warnings (tweak as you like)
-if (MSVC)
-    target_compile_options(sm2verify PRIVATE /W4)
-else()
-    target_compile_options(sm2verify PRIVATE -Wall -Wextra -Wpedantic)
-endif()
 
 # Optional: installation
 # install(TARGETS sm2verify RUNTIME DESTINATION bin)
