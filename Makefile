@@ -10,7 +10,7 @@ KEYSTAMP := .keys.stamp
 
 SM2VERIFY := ./build/sm2verify
 
-.PHONY: all test sign verify build clean
+.PHONY: all test sign verify build clean clean-test
 
 all: build 
 
@@ -19,7 +19,7 @@ test: verify
 
 $(BIN_FILE):
 	@echo ">>> Generating $(SIZE_MB) MiB binary file: $@"
-	@dd if=/dev/urandom of=msg.bin bs=1M count=16
+	@dd if=/dev/urandom of=$(BIN_FILE) bs=1M count=16
 
 # Generate SM2 keypair once; both files produced in one shot.
 $(KEYSTAMP):
@@ -44,15 +44,17 @@ verify: $(SIG_FILE) $(PUB_KEY) $(BIN_FILE)
 	@cat $(BIN_FILE) | gmssl sm2verify -pubkey $(PUB_KEY) -id '$(ID)' -sig $(SIG_FILE)
 	@echo ">>> Verifying signature with sm2verify binary"
 	@cat $(BIN_FILE) | $(SM2VERIFY) -pubkey $(PUB_KEY) -id '$(ID)' -sig $(SIG_FILE)
-	
 
-build: clean
+build:
 	cmake -S . -B build
 	cmake --build build
 
-clean:
-	rm -rf build \
-		$(BIN_FILE) $(SIG_FILE) $(PRIV_KEY) $(PUB_KEY) $(KEYSTAMP)
+clean: clean-test
+	rm -rf build
+
+clean-test:
+	rm -rf $(BIN_FILE) $(SIG_FILE) $(PRIV_KEY) $(PUB_KEY) $(KEYSTAMP)
+
 
 .PHONY: size
 
