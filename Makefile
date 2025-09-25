@@ -53,9 +53,9 @@ verify: $(SIG_FILE) $(PUB_KEY) $(MSG_FILE) $(BAD_FILE)
 	@echo ">>> Verifying signature with sm2verify binary"
 	$(BIN) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
 	@echo ">>> Verifying bad signature with gmssl library (should fail)"
-	gmssl sm2verify -pubkey $(PUB_KEY) -id '$(ID)' -in '$(BAD_FILE)' -sig $(SIG_FILE)
+	-@gmssl sm2verify -pubkey $(PUB_KEY) -id '$(ID)' -in '$(BAD_FILE)' -sig $(SIG_FILE)
 	@echo ">>> Verifying bad signature with sm2verify binary (should fail)"
-	$(BIN) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(BAD_FILE)' -sig $(SIG_FILE)
+	-@$(BIN) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(BAD_FILE)' -sig $(SIG_FILE)
 
 #===========================================
 # Build and Coverage 
@@ -93,7 +93,7 @@ collect: build-with-coverage keys sign $(SIG_FILE) $(PUB_KEY) $(MSG_FILE) $(BAD_
 	@echo ">>> Function should be executed once before run target collect"
 	@rm -rf $(COV_DIR) $(HTML_DIR) && mkdir -p $(COV_DIR) $(HTML_DIR)
 	@LLVM_PROFILE_FILE=$(PROFILE_TMPL) $(BIN) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
-	@LLVM_PROFILE_FILE=$(PROFILE_TMPL) $(BIN) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(BAD_FILE)' -sig $(SIG_FILE)
+	-@LLVM_PROFILE_FILE=$(PROFILE_TMPL) $(BIN) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(BAD_FILE)' -sig $(SIG_FILE)
 	@$(LLVM_PROFDATA) merge -sparse $(COV_DIR)/*.profraw -o $(PROFDATA)
 	@$(LLVM_COV) show $(BIN) -instr-profile=$(PROFDATA) -format=html -output-dir=$(HTML_DIR) -Xdemangler=c++filt
 	@echo ">>> Coverage report generated at: file://$(HTML_DIR)/index.html"
