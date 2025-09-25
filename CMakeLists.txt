@@ -15,7 +15,7 @@ file(GLOB SRC_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
 
 # Build the executable
 add_executable(sm2verify
-    sm2verify.c
+    main.c
     ${SRC_FILES}
 )
 
