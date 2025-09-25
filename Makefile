@@ -54,4 +54,8 @@ clean:
 	rm -rf build \
 		$(BIN_FILE) $(SIG_FILE) $(PRIV_KEY) $(PUB_KEY) $(KEYSTAMP)
 
+.PHONY: size
+
+size:
+	@du -sh include src sm2verify.c ; du -ch include src sm2verify.c | awk '/total$$/'
 	
