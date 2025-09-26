@@ -19,7 +19,8 @@ BAD_FILE := bad.bin
 SIG_FILE := msg.sig
 PRIV_KEY := sm2.pem
 PUB_KEY  := sm2pub.pem
-BAD_KEY	:= badpub.pem
+BAD_PRIV_KEY := sm2bad.pem
+BAD_PUB_KEY	:= sm2badpub.pem
 KEYSTAMP := .keys.stamp
 
 $(MSG_FILE):
@@ -30,9 +31,9 @@ $(BAD_FILE):
 	@echo ">>> Generating $(SIZE_MB) MiB binary file: $@"
 	@dd if=/dev/urandom of=$(BAD_FILE) bs=1M count=16
 
-$(BAD_KEY):
+$(BAD_PUB_KEY):
 	@echo ">>> Generating bad SM2 public key"
-	@gmssl sm2keygen -pass 'badpass' -out badsm2.pem -pubout $(BAD_KEY)
+	@gmssl sm2keygen -pass 'badpass' -out $(BAD_PRIV_KEY) -pubout $(BAD_PUB_KEY)
 
 # Generate SM2 keypair once; both files produced in one shot.
 $(KEYSTAMP):
@@ -52,7 +53,7 @@ $(SIG_FILE): $(MSG_FILE) $(PRIV_KEY) $(PUB_KEY)
 sign: $(SIG_FILE)
 
 # Verify the signature with the public key
-verify: $(SIG_FILE) $(PUB_KEY) $(MSG_FILE) $(BAD_FILE) $(BAD_KEY)
+verify: $(SIG_FILE) $(PUB_KEY) $(MSG_FILE) $(BAD_FILE) $(BAD_PUB_KEY)
 	@echo ">>> Verifying signature with gmssl library"
 	gmssl sm2verify -pubkey $(PUB_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
 	@echo ">>> Verifying signature with sm2verify binary"
@@ -62,9 +63,9 @@ verify: $(SIG_FILE) $(PUB_KEY) $(MSG_FILE) $(BAD_FILE) $(BAD_KEY)
 	@echo ">>> Verifying bad signature with sm2verify binary (should fail)"
 	-@$(BIN) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(BAD_FILE)' -sig $(SIG_FILE)
 	@echo ">>> Verifying signature with bad public key with gmssl library (should fail)"
-	-@gmssl sm2verify -pubkey $(BAD_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
+	-@gmssl sm2verify -pubkey $(BAD_PUB_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
 	@echo ">>> Verifying signature with bad public key with sm2verify binary (should fail)"
-	-@$(BIN) -pubkey $(BAD_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
+	-@$(BIN) -pubkey $(BAD_PUB_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
 
 #===========================================
 # Build and Coverage 
@@ -98,21 +99,21 @@ else
 endif
 
 ifeq ($(ARCH),Darwin)
-collect: build-with-coverage keys sign $(SIG_FILE) $(PUB_KEY) $(MSG_FILE) $(BAD_FILE) $(BAD_KEY)
+collect: build-with-coverage keys sign $(SIG_FILE) $(PUB_KEY) $(MSG_FILE) $(BAD_FILE) $(BAD_PUB_KEY)
 	@echo ">>> Function should be executed once before run target collect"
 	@rm -rf $(COV_DIR) $(HTML_DIR) && mkdir -p $(COV_DIR) $(HTML_DIR)
 	@LLVM_PROFILE_FILE=$(PROFILE_TMPL) $(BIN) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
 	-@LLVM_PROFILE_FILE=$(PROFILE_TMPL) $(BIN) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(BAD_FILE)' -sig $(SIG_FILE)
-	-@LLVM_PROFILE_FILE=$(PROFILE_TMPL) $(BIN) -pubkey $(BAD_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
+	-@LLVM_PROFILE_FILE=$(PROFILE_TMPL) $(BIN) -pubkey $(BAD_PUB_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
 	@$(LLVM_PROFDATA) merge -sparse $(COV_DIR)/*.profraw -o $(PROFDATA)
 	@$(LLVM_COV) show $(BIN) -instr-profile=$(PROFDATA) -format=html -output-dir=$(HTML_DIR) -Xdemangler=c++filt
 	@echo ">>> Coverage report generated at: file://$(HTML_DIR)/index.html"
 else
-collect: build-with-coverage keys sign $(SIG_FILE) $(PUB_KEY) $(MSG_FILE) $(BAD_FILE) $(BAD_KEY)
+collect: build-with-coverage keys sign $(SIG_FILE) $(PUB_KEY) $(MSG_FILE) $(BAD_FILE) $(BAD_PUB_KEY)
 	@echo ">>> Function should be executed once before run target collect"
 	@$(BIN) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
 	-@$(BIN) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(BAD_FILE)' -sig $(SIG_FILE)
-	-@$(BIN) -pubkey $(BAD_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
+	-@$(BIN) -pubkey $(BAD_PUB_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
 	@lcov --capture --directory $(BUILD_DIR) --base-directory $(PWD) -o $(COVERAGE_INFO)
 	@lcov --extract $(COVERAGE_INFO) "$(PWD)/*" -o $(PROJECT_INFO)
 	@genhtml $(PROJECT_INFO) --output-directory $(HTML_DIR) --function-coverage
@@ -123,7 +124,7 @@ clean: clean-verify
 	rm -rf build *.profraw
 
 clean-verify:
-	rm -rf $(MSG_FILE) $(BAD_FILE) $(SIG_FILE) $(PRIV_KEY) $(PUB_KEY) $(KEYSTAMP) badsm2.pem $(BAD_KEY)
+	rm -rf $(MSG_FILE) $(BAD_FILE) $(SIG_FILE) $(PRIV_KEY) $(PUB_KEY) $(KEYSTAMP) $(BAD_PRIV_KEY) $(BAD_PUB_KEY)
 
 
 .PHONY: size
