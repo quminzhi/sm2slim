@@ -128,5 +128,9 @@ clean-verify:
 .PHONY: size
 
 size:
+	@echo ">>> Size Report"
 	@du -sh include src ; du -ch include src | awk '/total$$/'
+	@echo ">>> Elf Report"
+	@size $(BIN)
+
 	
