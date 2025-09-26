@@ -74,8 +74,8 @@ verify: $(SIG_FILE) $(PUB_KEY) $(MSG_FILE) $(BAD_FILE) $(BAD_PUB_KEY)
 .PHONY: build build-with-coverage collect clean clean-verify
 
 build:
-	cmake -S . -B build
-	cmake --build build
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
+	cmake --build build -j
 
 build-with-coverage:
 	cmake -S . -B build -DENABLE_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
@@ -86,11 +86,9 @@ HTML_DIR  := $(BUILD_DIR)/coverage-html
 ARCH := $(shell uname -s)
 
 ifeq ($(ARCH),Darwin)
-  # 查找 llvm 工具（优先 xcrun，其次 Homebrew）
   BREW_LLVM     := $(shell brew --prefix llvm 2>/dev/null)
   LLVM_COV      ?= $(shell xcrun --find llvm-cov 2>/dev/null || echo $(BREW_LLVM)/bin/llvm-cov)
   LLVM_PROFDATA ?= $(shell xcrun --find llvm-profdata 2>/dev/null || echo $(BREW_LLVM)/bin/llvm-profdata)
-  # 生成 .profraw 的文件名模板（避免并发冲突）
   PROFILE_TMPL := $(COV_DIR)/default-%p-%m.profraw
   PROFDATA     := $(COV_DIR)/default.profdata
 else

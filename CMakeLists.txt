@@ -20,8 +20,13 @@ add_executable(${APP}
     ${SRC_FILES}
 )
 
-include(cmake/coverage.cmake)
-cover_target(${APP})
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  include(cmake/coverage.cmake)
+  cover_target(${APP})
+else()
+  target_compile_options(${APP} PRIVATE -Os -ffunction-sections -fdata-sections)
+  target_link_options(${APP} PRIVATE -Wl,--gc-sections)
+endif()
 
 # Include path for headers: include/gmssl/...
 target_include_directories(${APP} PRIVATE
