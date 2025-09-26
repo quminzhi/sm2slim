@@ -130,5 +130,5 @@ clean-verify:
 .PHONY: size
 
 size:
-	@du -sh include src sm2verify.c ; du -ch include src sm2verify.c | awk '/total$$/'
+	@du -sh include src sm2verify.c ; du -ch include src | awk '/total$$/'
 	

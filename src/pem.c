@@ -36,37 +36,6 @@ static int remove_newline(char *line)
 	return 0; // No newline found, might not be an error
 }
 
-int pem_write(FILE *fp, const char *name, const uint8_t *data, size_t datalen)
-{
-	BASE64_CTX ctx;
-	uint8_t out[168];
-	int inlen, outlen;
-
-	if (!datalen) {
-		error_print();
-		return -1;
-	}
-	if (datalen > INT_MAX) {
-		error_print();
-		return -1;
-	}
-
-	fprintf(fp, "-----BEGIN %s-----\n", name);
-	base64_encode_init(&ctx);
-	while (datalen) {
-		inlen = datalen < 48 ? (int)datalen : 48;
-		base64_encode_update(&ctx, data, inlen, out, &outlen);
-		fwrite(out, 1, outlen, fp);
-		data += inlen;
-		datalen -= inlen;
-	}
-	base64_encode_finish(&ctx, out, &outlen);
-	fwrite(out, 1, outlen, fp);
-	fprintf(fp, "-----END %s-----\n", name);
-
-	return 1;
-}
-
 int pem_read(FILE *fp, const char *name, uint8_t *data, size_t *datalen, size_t maxlen)
 {
 	char line[80];
