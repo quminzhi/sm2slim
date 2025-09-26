@@ -25,7 +25,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   cover_target(${APP})
 else()
   target_compile_options(${APP} PRIVATE -Os -ffunction-sections -fdata-sections)
-  target_link_options(${APP} PRIVATE -Wl,--gc-sections)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_options(${APP} PRIVATE -Wl,--gc-sections)
+  endif()
 endif()
 
 # Include path for headers: include/gmssl/...
