@@ -108,7 +108,7 @@ collect: build-with-coverage keys sign $(SIG_FILE) $(PUB_KEY) $(MSG_FILE) $(BAD_
 	@echo ">>> Coverage report generated at: file://$(HTML_DIR)/index.html"
 else
 collect: build-with-coverage keys sign $(SIG_FILE) $(PUB_KEY) $(MSG_FILE) $(BAD_FILE) $(BAD_PUB_KEY)
-	@echo ">>> Function should be executed once before run target collect"
+	@echo ">>> Run target for three cases to collect running path"
 	@$(BIN) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
 	-@$(BIN) -pubkey $(PUB_KEY) -id '$(ID)' -in '$(BAD_FILE)' -sig $(SIG_FILE)
 	-@$(BIN) -pubkey $(BAD_PUB_KEY) -id '$(ID)' -in '$(MSG_FILE)' -sig $(SIG_FILE)
